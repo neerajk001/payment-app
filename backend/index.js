@@ -9,7 +9,7 @@ const app = express();
 
 // CORS Middleware to allow requests from your Vercel frontend and localhost
 app.use(cors({
-    origin: "https://payment-app-orpin.vercel.app", // Vercel frontend URL for production
+    origin: "https://payment-app-orpin.vercel.app/signin", // Vercel frontend URL for production
     credentials: true
 }));
 
