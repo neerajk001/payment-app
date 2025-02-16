@@ -63,7 +63,7 @@ function Signup() {
                         try {
                      console.log("Sending request to backend..."); 
       
-                const response = await axios.post("http://localhost:3000/api/v1/signup", {
+                const response = await axios.post("https://payment-app-3ogv.onrender.com/api/v1/signup", {
                 firstName,
                 lastName,
                 username,

@@ -24,7 +24,7 @@ const SendMoney = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/api/v1/account/transfer",
+        "https://payment-app-3ogv.onrender.com/api/v1/account/transfer",
         {
           to: id,
           amount,
