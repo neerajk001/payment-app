@@ -1,25 +1,23 @@
 import express from 'express';
-import mongoose from 'mongoose'; // Import mongoose as an ES module
-import cors from 'cors'; // Uncomment if you want to use CORS
+import mongoose from 'mongoose'; 
+import cors from 'cors'; 
 
-import authroutes from './routes/auth.routes.js'
-import accountroutes from './routes/account.routes.js'
+import authroutes from './routes/auth.routes.js';
+import accountroutes from './routes/account.routes.js';
 
 const app = express();
 
-// Middleware to parse JSON requests
+// CORS Middleware to allow requests from your Vercel frontend and localhost
 app.use(cors({
-    origin: "http://localhost:5173",  // Change this to your frontend's port
+    origin: "https://payment-app-orpin.vercel.app", // Vercel frontend URL for production
     credentials: true
 }));
+
 app.use(express.json()); 
-
-
 
 // Use the main router
 app.use('/api/v1', authroutes);
-app.use('/api/v1/account',accountroutes)
-
+app.use('/api/v1/account', accountroutes);
 
 const main = async () => {
     try {
