@@ -7,8 +7,11 @@ import accountroutes from './routes/account.routes.js';
 
 const app = express();
 
-// CORS Middleware to allow requests from your Vercel frontend and localhost
-app.use(cors());
+
+app.use(cors({
+  origin: ['https://payment-app-dacc.vercel.app/'], 
+  credentials: true
+}));
 
 app.use(express.json()); 
 
@@ -31,5 +34,5 @@ const main = async () => {
     }
 };
 
-// Call the main function to start the application
+
 main();
