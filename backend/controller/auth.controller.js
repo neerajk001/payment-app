@@ -3,8 +3,9 @@ import zod from 'zod'
 import userModel from "../model/user.model.js";
 import jwt from 'jsonwebtoken'
 import JWT_SECRET from "../config.js";
-import { authMiddleware } from "../utils/middleware.js";
+// import authMiddleware from "../middleware.js";
 import account from "../model/account.js";
+// import {objectid}
 
 
 const signupSchema = zod.object({
@@ -50,7 +51,7 @@ export const signup = async (req, res) => {
         const token = jwt.sign({
             id: dbUser._id  
         }, JWT_SECRET,
-        { expiresIn: "1h" }
+        
     );
 
         res.json({
@@ -68,63 +69,65 @@ export const signup = async (req, res) => {
     }
 }
 
-const signinSchema =zod.object({
-    identifier:zod.string().min(3, "email or password is required"),
-    password:zod.string()
-})
-export const signin =async (req , res)=>{
-    
-    try{
-        const validSign =signinSchema.safeParse(req.body)
-        if(!validSign.success){
-            return   res.json({
-                success:false,
-                message:"Incorrect inputs"
-            })
-        }
+const signinSchema = zod.object({
+  identifier: zod.string().min(3, "Email or username is required"),
+  password: zod.string().min(1, "Password is required"),
+});
 
-        const {identifier, password} =req.body //get username or email from req body 
-        const user = await userModel.findOne({
-            $or:[{email:identifier},{username:identifier}]
-            
-        })
+export const signin = async (req, res) => {
+  try {
+    const validSign = signinSchema.safeParse(req.body);
+    if (!validSign.success) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid inputs",
+      });
+    }
 
-        if(!user){
-            return res.json({
-                success:false,
-                message:"user not found"
-            })
-        }
+    const { identifier, password } = req.body;
 
-        // checking the users password
-        if(password !== user.password){
-            return res.json({
-                success:false,
-                message:"Incorrect credentials"
-            })
-        }
+    const user = await userModel.findOne({
+      $or: [{ email: identifier }, { username: identifier }],
+    });
 
-        const  token = jwt.sign({
-            id:user._id,
-             email:user.email ,
-             username:user.username
-        },JWT_SECRET,
-        { expiresIn: "1h" }
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // In production, you'd use bcrypt.compare here
+    if (password !== user.password) {
+      return res.status(401).json({
+        success: false,
+        message: "Incorrect password",
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        id: user._id,
+        email: user.email,
+        username: user.username,
+      },
+      JWT_SECRET,
+      { expiresIn: "7d" } // optional but good practice
     );
 
-        res.json({
-            message:"sigin successfull",
-            token:token
-        })
-
-    }catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "Server error",
-            error: error.message,
-        });
-    }
-}
+    return res.status(200).json({
+      success: true,
+      message: "Signin successful",
+      token,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
 
  const  updateSchema=zod.object({
     firstName:zod.string(),
@@ -136,15 +139,19 @@ export const updateBody = async(req,res) =>{
    try{
     const {success} =updateSchema.safeParse(req.body)
     if(!success){
-        return res.status(4001).json({
+        return res.status(400).json({
             message:"invalid credential"
         })
     }
-
+        console.log("success",success)
     const result =await userModel.updateOne(
-        {id:req.userId},
+        {_id:req.userId},
         {$set:req.body}
     )
+
+    // res.json({
+    //    result:result
+    // })
     if(result.modifiedCount ===0){
         return res.status(400).json({
             message:"No changes has been made in the document"

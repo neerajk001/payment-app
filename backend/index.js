@@ -8,10 +8,7 @@ import accountroutes from './routes/account.routes.js';
 const app = express();
 
 // CORS Middleware to allow requests from your Vercel frontend and localhost
-app.use(cors({
-    origin: "https://payment-app-orpin.vercel.app", // Vercel frontend URL for production
-    credentials: true
-}));
+app.use(cors());
 
 app.use(express.json()); 
 
