@@ -1,30 +1,90 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import { Send, User, DollarSign, CheckCircle, XCircle, X } from "lucide-react";
 import axios from "axios";
+
+// Toast Component
+const Toast = ({ message, type, onClose }) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose();
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className="fixed top-4 right-4 z-50 animate-slide-in">
+      <div
+        className={`flex items-center p-4 rounded-lg shadow-lg max-w-sm ${
+          type === "success"
+            ? "bg-green-50 border border-green-200"
+            : "bg-red-50 border border-red-200"
+        }`}
+      >
+        <div className="flex-shrink-0">
+          {type === "success" ? (
+            <CheckCircle className="w-5 h-5 text-green-500" />
+          ) : (
+            <XCircle className="w-5 h-5 text-red-500" />
+          )}
+        </div>
+        <div className="ml-3">
+          <p
+            className={`text-sm font-medium ${
+              type === "success" ? "text-green-800" : "text-red-800"
+            }`}
+          >
+            {message}
+          </p>
+        </div>
+        <button
+          onClick={onClose}
+          className={`ml-auto flex-shrink-0 p-1 rounded-md hover:bg-opacity-20 ${
+            type === "success"
+              ? "text-green-500 hover:bg-green-500"
+              : "text-red-500 hover:bg-red-500"
+          }`}
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const SendMoney = () => {
   const [searchParams] = useSearchParams();
   const [amount, setAmount] = useState(0);
-  const [message, setMessage] = useState(""); // State for response messages
-  const [loading, setLoading] = useState(false); // State to disable button while processing
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
 
   const name = searchParams.get("name");
   const id = searchParams.get("id");
 
+  const showToast = (message, type) => {
+    setToast({ message, type });
+  };
+
+  const closeToast = () => {
+    setToast(null);
+  };
+
   const handleTransfer = async () => {
     setLoading(true);
-    setMessage(""); // Clear previous messages
+    setMessage("");
     const transferToken = localStorage.getItem("token");
 
     if (!transferToken) {
       setMessage("Authentication failed. Please log in.");
+      showToast("Authentication failed. Please log in.", "error");
       setLoading(false);
       return;
     }
 
     try {
       const response = await axios.post(
-        "https://payment-app-3ogv.onrender.com/api/v1/account/transfer",
+        "http://localhost:3000/api/v1/account/transfer",
         {
           to: id,
           amount,
@@ -36,79 +96,153 @@ const SendMoney = () => {
         }
       );
 
-      setMessage(response.data.message || "Transfer successful!"); // Success message
+      const successMessage = response.data.message || "Transfer successful!";
+      setMessage(successMessage);
+      showToast(successMessage, "success");
     } catch (error) {
       console.error("Error in transfer:", error);
-      setMessage(
-        error.response?.data?.message || "Failed to transfer money. Try again."
-      ); // Show backend error
+      const errorMessage = error.response?.data?.message || "Failed to transfer money. Try again.";
+      setMessage(errorMessage);
+      showToast(errorMessage, "error");
     }
 
     setLoading(false);
   };
 
   return (
-    <div className="flex justify-center bg-gray-100 h-screen">
-      <div className="flex justify-center h-full flex-col">
-        <div className="border h-min text-card-foreground max-w-md p-4 space-y-8 w-96 bg-white shadow-lg rounded-lg">
-          <div className="flex flex-col space-y-1.5 p-6">
-            <h2 className="text-3xl font-bold text-center">Send Money</h2>
+    <>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full mb-4">
+              <Send className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900">Send Money</h1>
+            <p className="text-gray-600 mt-2">
+              Transfer funds quickly and securely
+            </p>
           </div>
 
-          <div className="p-6">
-            {/* Receiver Profile */}
-            <div className="flex items-center space-x-6">
-              <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
-                <span className="text-2xl text-white">
-                  {name[0].toUpperCase()}
-                </span>
+          {/* Main Card */}
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            {/* Recipient Section */}
+            <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
+              <div className="flex items-center space-x-4">
+                <div className="relative">
+                  <div className="w-14 h-14 rounded-full bg-white bg-opacity-20 flex items-center justify-center backdrop-blur-sm">
+                    <span className="text-xl font-semibold text-white">
+                      {name ? name[0].toUpperCase() : "U"}
+                    </span>
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-400 rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full">
+                      <h1 className="text-black items-center mt-2.5 -mx-6.5 font-bold text-2xl">{name[0].toUpperCase()}</h1>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm opacity-90">Sending to</p>
+                  <h2 className="text-xl font-semibold">{name || "Unknown User"}</h2>
+                </div>
               </div>
-              <h2 className="text-3xl font-semibold"> {name}</h2>
             </div>
 
-            {/* Amount Input */}
-            <div className="mt-3">
-              <h2 className="font-semibold text-md opacity-70">Enter Amount</h2>
-              <input
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                type="number"
-                id="amount"
-                className="bg-slate-200 px-2 py-1 rounded-md w-full outline-none"
-                placeholder="Enter amount"
-                min="1"
-              />
-            </div>
+            {/* Amount Input Section */}
+            <div className="p-6 space-y-6">
+              <div>
+                <label className="flex items-center text-sm font-medium text-gray-700 mb-3">
+                  <DollarSign className="w-4 h-4 mr-2 text-gray-500" />
+                  Enter Amount
+                </label>
+                <div className="relative">
+                  <input
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    type="number"
+                    min="1"
+                    className="w-full px-4 py-4 text-lg font-semibold border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-200 bg-gray-50 focus:bg-white"
+                    placeholder="Enter amount"
+                  />
+                </div>
+              </div>
 
-            {/* Transfer Button */}
-            <button
-              onClick={handleTransfer}
-              className={`w-full mt-6 rounded-md py-2 text-white font-semibold ${
-                loading
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-green-600 hover:bg-green-700"
-              }`}
-              disabled={loading}
-            >
-              {loading ? "Processing..." : "Initiate Transfer"}
-            </button>
+              {/* Quick Amount Buttons */}
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-3">
+                  Quick amounts
+                </p>
+                <div className="grid grid-cols-4 gap-2">
+                  {[10, 25, 50, 100].map((quickAmount) => (
+                    <button
+                      key={quickAmount}
+                      onClick={() => setAmount(quickAmount)}
+                      className="py-2 px-3 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                    >
+                      ${quickAmount}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-            {/* Response Message */}
-            {message && (
-              <div
-                className={`mt-4 p-2 text-center text-white rounded-md ${
-                  message.includes("successful")
-                    ? "bg-green-500"
-                    : "bg-red-500"
+              {/* Transfer Button */}
+              <button
+                onClick={handleTransfer}
+                disabled={loading}
+                className={`w-full py-4 rounded-xl font-semibold text-white transition-all duration-200 flex items-center justify-center space-x-2 ${
+                  loading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
                 }`}
               >
-                {message}  
-              </div>
-            )}
+                {loading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-5 h-5" />
+                    <span>Initiate Transfer</span>
+                  </>
+                )}
+              </button>
+
+              {/* Response Message (kept as fallback) */}
+              {message && (
+                <div
+                  className={`mt-4 p-3 text-center text-white rounded-lg ${
+                    message.includes("successful")
+                      ? "bg-green-500"
+                      : "bg-red-500"
+                  }`}
+                >
+                  {message}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Security Note */}
+          <div className="mt-6 text-center">
+            <p className="text-xs text-gray-500">
+              🔒 Your transaction is secured with end-to-end encryption
+            </p>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={closeToast}
+        />
+      )}
+
+      
+    </>
   );
 };
 

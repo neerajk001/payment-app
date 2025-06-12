@@ -1,34 +1,52 @@
 import React from "react";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Signin from "./pages/Signin";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import SendMoney from "./pages/SendMoney";
+import Landing from "./pages/Landing";
 
-// Function to check if the user is authenticated
-const isAuthenticated = () => {
-  return !!localStorage.getItem("token"); // Returns true if token exists, otherwise false
-};
-
-// Protected Route Component
-const ProtectedRoute = ({ element }) => {
-  return isAuthenticated() ? element : <Navigate to="/signin" />;
+// Inline protected route logic
+const RequireAuth = ({ children }) => {
+  const token = localStorage.getItem("token");
+  return token ? children : <Navigate to="/signin" />;
 };
 
 function App() {
   return (
-    <div style={{ backgroundColor: "#d3d3d3", height: "100vh" }}>
+    <div className="min-h-screen bg-gray-300">
       <Routes>
-        {/* If user is logged in, redirect to Dashboard instead of Signin/Signup */}
-        <Route path="/signin" element={isAuthenticated() ? <Navigate to="/dashboard" /> : <Signin />} />
-        <Route path="/signup" element={isAuthenticated() ? <Navigate to="/dashboard" /> : <Signup />} />
+        <Route path="/" element={<Landing />} />
+        <Route path="/signin" element={<Signin />} />
+        <Route path="/signup" element={<Signup />} />
 
-        {/* Protected Routes (Only for authenticated users) */}
-        <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
-        <Route path="/send" element={<ProtectedRoute element={<SendMoney />} />} />
+        {/* Protected Routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <RequireAuth>
+              <Dashboard />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/send"
+          element={
+            <RequireAuth>
+              <SendMoney />
+            </RequireAuth>
+          }
+        />
 
-        {/* Default Route (Redirect to Dashboard if logged in, else Signin) */}
-        <Route path="/" element={isAuthenticated() ? <Navigate to="/dashboard" /> : <Navigate to="/signin" />} />
+        {/* Fallback Route */}
+        <Route
+          path="*"
+          element={
+            <div className="text-center text-red-600 p-10 text-xl">
+              404 - Page Not Found
+            </div>
+          }
+        />
       </Routes>
     </div>
   );

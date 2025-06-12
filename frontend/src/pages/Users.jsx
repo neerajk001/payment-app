@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import  { useEffect, useState } from 'react';
 import axios from 'axios';
 import User from '../components/User';  // ✅ Import User component
 
@@ -10,7 +10,7 @@ const Users = () => {
         const fetchUsers = async () => {
             if (filter.trim() === "") return; // Don't fetch if search is empty
             try {
-                const response = await axios.get(`https://payment-app-3ogv.onrender.com/api/v1/bulk?filter=${filter}`);
+                const response = await axios.get(`http://localhost:3000/api/v1/bulk?filter=${filter}`);
                 console.log(response.data);
                 setUsers(response.data.user);  // Ensure correct response key
             } catch (error) {

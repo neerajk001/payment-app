@@ -1,88 +1,125 @@
-import React, { useState } from 'react'
-import Heading from '../components/Heading'
-import Subheading from '../components/Subheading'
-import Input from '../components/Input'
-import Button from '../components/Button'
-import BottomWarning from '../components/BottomWarning'
-import axios from 'axios'
-// import Dashboard from './Dashboard'
-import { useNavigate } from 'react-router-dom'
+import React, { useState } from 'react';
+import Heading from '../components/Heading';
+import Subheading from '../components/Subheading';
+import Input from '../components/Input';
+import Button from '../components/Button';
+import BottomWarning from '../components/BottomWarning';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { toast, Toaster } from 'react-hot-toast';
+import { FiArrowLeft } from 'react-icons/fi';
 
 const Signin = () => {
-  const navigate =useNavigate()
-  const [emailOrPassword , setEmailOrPassword] =useState("");
-  const [password , setPassword] =useState("");
-  const [errorMessage, setErrorMessage] =useState("") // to store the error msg
+  const navigate = useNavigate();
+  const [emailOrPassword, setEmailOrPassword] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-
-  const handleSign =async()=>{
-   
-    // const signupToken  =localStorage.getItem("token")
-    // console.log(signupToken)
-    // console.log("Stored Signup Token:", localStorage.getItem("token"));
-
-
-    // if(!signupToken){
-    //   setErrorMessage("please signup first");
-    //   return 
-    // }
-
-    try{
-      // sending the backend request
-      const response =await axios.post("https://payment-app-3ogv.onrender.com/api/v1/signin",{
-        identifier:emailOrPassword,
-        password
-      })
-      const {token} =response.data
-      console.log("signin token",token)
-      localStorage.setItem("token",token)
-      navigate('/Dashboard')
-
-      console.log("signin successfull", token)
-      
+  const handleSign = async () => {
+    if (!emailOrPassword || !password) {
+      toast.error("Please fill in all fields.");
+      return;
     }
-    
-    catch(error){
-      if(error.response){
-        setErrorMessage(error.response.data.message || "something went wrong")
-      }else{
-        setErrorMessage("unable to connect to the server")
 
-      }
-      console.log("signin error", error)
-      
+    setLoading(true);
+
+    try {
+      const response = await axios.post("http://localhost:3000/api/v1/signin", {
+        identifier: emailOrPassword,
+        password,
+      });
+
+      const { token } = response.data;
+      localStorage.setItem("token", token);
+      toast.success("Signin successful! Redirecting...");
+
+      setTimeout(() => {
+        navigate('/Dashboard');
+      }, 1500);
+    } catch (error) {
+      const message = error.response?.data?.message || "Signin failed. Please try again.";
+      toast.error(message);
+    } finally {
+      setLoading(false);
     }
-  }
+  };
+
   return (
-    <div className=' flex justify-center h-screen min-h-screen '>
-        <div className='flex flex-col justify-center'>
-          <div className='w-80 bg-white items-center text-center rounded shadow-2xl p-2'>
-            <Heading label={"signin"}/>
-            {errorMessage && <p className="error-message">{errorMessage}</p>}
-            <Subheading label={"enter your information to sigin to your account"}/>
-            <Input 
-            value={emailOrPassword}
-            onChange={(e)=>setEmailOrPassword(e.target.value)}
-            label={"username"}
-            placeholder={"eneter your username or email"}/>
-
-            <Input
-            value={password}
-            onChange={(e=>setPassword(e.target.value))}
-            label={"password"}
-            placeholder={"eneter your password"}/>
-            <Button onClick={handleSign}
-            label={"signin"}/>
-            <BottomWarning label={"Don't have an account"} buttonText={"signup"} to='/signup'/>
-            
-
-
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-700 via-purple-700 to-pink-700 p-4">
+      <Toaster position="top-right" reverseOrder={false} />
+      
+      <div className="w-full max-w-md bg-gradient-to-br from-white/95 to-white/90 rounded-2xl shadow-2xl overflow-hidden">
+        {/* Decorative header */}
+        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 relative">
+          <button 
+            onClick={() => navigate('/')}
+            className="absolute top-4 left-4 flex items-center gap-1 text-white/90 hover:text-white transition-colors"
+          >
+            <FiArrowLeft className="text-lg" />
+            <span className="text-sm">Home</span>
+          </button>
+          <div className="text-center pt-4">
+            <Heading 
+              label="Welcome Back" 
+              className="text-white font-bold text-3xl" 
+            />
+            <Subheading 
+              label="Sign in to continue to your account" 
+              className="text-white/90 mt-2" 
+            />
           </div>
-        
-
         </div>
-    </div>
-  )
-}
 
-export default Signin
+        {/* Form section */}
+        <div className="p-6">
+          <div className="space-y-5">
+            <Input
+              value={emailOrPassword}
+              onChange={(e) => setEmailOrPassword(e.target.value)}
+              label="Username or Email"
+              placeholder="Enter your username or email"
+            />
+            
+            <Input
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              label="Password"
+              placeholder="Enter your password"
+              type="password"
+            />
+          </div>
+
+          <div className="mt-2 text-right">
+            <button 
+              onClick={() => navigate('/forgot-password')} 
+              className="text-sm text-purple-700 hover:text-purple-900 transition-colors font-medium"
+            >
+              Forgot password?
+            </button>
+          </div>
+
+          <div className="mt-8">
+            <Button 
+              onClick={handleSign}
+              label={loading ? "Signing in..." : "Sign In"}
+              disabled={loading}
+              className={`w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-3 rounded-lg shadow-md transition-all ${loading ? 'opacity-80' : 'hover:shadow-lg'}`}
+            />
+          </div>
+
+          <div className="mt-6">
+            <BottomWarning 
+              label="Don't have an account?" 
+              buttonText="Sign up" 
+              to="/signup"
+              className="text-gray-700"
+              buttonClassName="text-purple-700 font-medium hover:text-purple-900"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Signin;
