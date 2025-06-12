@@ -17,7 +17,7 @@ const Dashboard = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        "http://localhost:3000/api/v1/account/balance",
+        "https://payment-app-1-qccz.onrender.com/api/v1/account/balance",
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setBalance(response.data.balance);

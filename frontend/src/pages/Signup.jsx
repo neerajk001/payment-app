@@ -27,7 +27,7 @@ function Signup() {
   const handleSignup = async () => {
     setLoading(true);
     try {
-      const response = await axios.post("http://localhost:3000/api/v1/signup", formData);
+      const response = await axios.post("https://payment-app-1-qccz.onrender.com/api/v1/signup", formData);
       localStorage.setItem("token", response.data.token);
       navigate('/signin');
     } catch (error) {
