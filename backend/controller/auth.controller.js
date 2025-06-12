@@ -41,7 +41,7 @@ export const signup = async (req, res) => {
         const userId =dbUser._id;
         await account.create({
             userId,
-            balance:1+Math.random()*10000
+            balance: Math.floor(1+Math.random()*10000)
         })
 
         // res.json({
