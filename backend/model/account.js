@@ -5,7 +5,7 @@ import userModel from "./user.model.js";
 
 const accountSchema =new Schema({
     userId:{
-        type:mongoose.Schema.Types.ObjectId, // reference to the user model
+        type:mongoose.Schema.Types.ObjectId, 
         ref:'User', 
         required:true
     },
